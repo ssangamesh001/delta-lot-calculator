@@ -1,0 +1,8 @@
+{
+"name":"Delta Lot Size Calculator",
+"short_name":"Lot Calculator",
+"start_url":"./index.html",
+"display":"standalone",
+"background_color":"#f3f4f6",
+"theme_color":"#111827"
+}

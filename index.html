@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>Delta Lot Size Calculator</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#111827}
+.container{max-width:520px;margin:auto;padding:20px}.card{background:#fff;padding:22px;border-radius:18px;box-shadow:0 8px 30px #0001}
+h1{margin:0 0 5px;font-size:25px}.sub{color:#6b7280;font-size:14px;margin-bottom:20px}
+label{display:block;font-weight:bold;font-size:14px;margin:14px 0 6px}
+input{width:100%;padding:13px;border:1px solid #d1d5db;border-radius:10px;font-size:16px}
+.result{margin-top:20px;background:#111827;color:white;border-radius:15px;padding:18px}
+.small{color:#d1d5db;font-size:12px}.lot{font-size:36px;font-weight:bold;margin:5px 0 15px}
+.row{display:flex;justify-content:space-between;border-top:1px solid #ffffff22;padding:9px 0}
+.note{font-size:12px;color:#6b7280;line-height:1.5;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="container"><div class="card">
+<h1>Delta Lot Size Calculator</h1>
+<div class="sub">Capital + leverage + SL risk</div>
+
+<label>Capital / Margin (₹)</label>
+<input id="capital" type="number" value="500" min="0">
+
+<label>Maximum SL Loss (₹)</label>
+<input id="risk" type="number" value="500" min="0">
+
+<label>Leverage (×)</label>
+<input id="leverage" type="number" value="100" min="1">
+
+<label>Entry Price (USD)</label>
+<input id="entry" type="number" value="70" min="0" step="0.0001">
+
+<label>Stop Loss Price (USD)</label>
+<input id="sl" type="number" value="72" min="0" step="0.0001">
+
+<div class="result">
+<div class="small">FINAL LOT SIZE</div>
+<div class="lot" id="finalLot">—</div>
+<div class="row"><span>Trade Value</span><b id="tradeValue">—</b></div>
+<div class="row"><span>Leverage Max Lot</span><b id="maxLot">—</b></div>
+<div class="row"><span>Risk-Based Lot</span><b id="riskLot">—</b></div>
+<div class="row"><span>SL Loss</span><b id="slLoss">—</b></div>
+</div>
+
+<div class="note">
+USD/INR is fixed at 87. Formula: Final Lot Size = lower of leverage-based lot and risk-based lot. Fees, funding and slippage are not included.
+</div>
+</div></div>
+
+<script>
+const USDINR=87;
+function calc(){
+ const c=Number(capital.value), r=Number(risk.value), l=Number(leverage.value);
+ const e=Number(entry.value), s=Number(sl.value);
+ if(!(c>0&&r>=0&&l>0&&e>0)&&s!==e)return;
+ if(s===e){finalLot.textContent="—";return}
+ const trade=c*l;
+ const max=(trade/USDINR)/e;
+ const riskLotValue=(r/USDINR)/Math.abs(s-e);
+ const final=Math.min(max,riskLotValue);
+ finalLot.textContent=final.toFixed(3)+" lots";
+ tradeValue.textContent="₹"+trade.toLocaleString("en-IN");
+ maxLot.textContent=max.toFixed(3);
+ riskLot.textContent=riskLotValue.toFixed(3);
+ slLoss.textContent="₹"+(final*Math.abs(s-e)*USDINR).toFixed(2);
+}
+document.querySelectorAll("input").forEach(x=>x.addEventListener("input",calc));
+calc();
+</script>
+</body>
+</html>

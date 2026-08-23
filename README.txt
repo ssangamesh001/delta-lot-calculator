@@ -1,11 +1,1 @@
-
-
-
-
-The calculator uses:
-Trade Value = Capital × Leverage
-Leverage Max Lot = Trade Value / USDINR / Entry
-Risk Lot = SL Risk / USDINR / ABS(Entry - SL)
-Final Lot = MIN(Leverage Max Lot, Risk Lot)
-
-USD/INR is live rate update
+The calculator uses: Trade Value = Capital × Leverage Leverage Max Lot = Trade Value / USDINR / Entry Risk Lot = SL Risk / USDINR / ABS(Entry - SL) Final Lot = MIN(Leverage Max Lot, Risk Lot) USD/INR is live rate update

@@ -106,6 +106,18 @@ button:hover{
     font-weight:bold
 }
 
+.profit-positive{
+    color:#22c55e;
+}
+
+.profit-negative{
+    color:#ef4444;
+}
+
+.profit-zero{
+    color:white;
+}
+
 .note{
     font-size:12px;
     color:#6b7280;
@@ -118,10 +130,46 @@ button:hover{
     margin-top:6px;
     color:#6b7280
 }
+
+
+/* =========================================
+   CALCULATION POPUP
+========================================= */
+
+.popup{
+    position:fixed;
+    left:50%;
+    bottom:30px;
+    transform:translateX(-50%) translateY(20px);
+    background:#111827;
+    color:white;
+    padding:12px 20px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:bold;
+    box-shadow:0 8px 25px #0003;
+    opacity:0;
+    pointer-events:none;
+    transition:all .25s ease;
+    z-index:9999;
+    white-space:nowrap;
+}
+
+.popup.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+}
 </style>
 </head>
 
 <body>
+
+<!-- CALCULATION POPUP -->
+
+<div id="popup" class="popup">
+    ✓ Calculation Updated
+</div>
+
 
 <div class="container">
 <div class="card">
@@ -132,12 +180,21 @@ button:hover{
 Capital + leverage + SL risk + exit P&L
 </div>
 
+
 <label>Position</label>
 
 <select id="position">
-    <option value="long">LONG POSITION</option>
-    <option value="short">SHORT POSITION</option>
+
+    <option value="long">
+        LONG POSITION
+    </option>
+
+    <option value="short">
+        SHORT POSITION
+    </option>
+
 </select>
+
 
 <div class="direction" id="directionText">
     LONG: Exit above Entry = Profit | Exit below Entry = Loss
@@ -145,27 +202,72 @@ Capital + leverage + SL risk + exit P&L
 
 
 <label>Capital / Margin (₹)</label>
-<input id="capital" type="number" value="500" min="0">
+
+<input
+    id="capital"
+    type="number"
+    value="500"
+    min="0"
+>
 
 
 <label>Maximum SL Loss (₹)</label>
-<input id="risk" type="number" value="500" min="0">
+
+<input
+    id="risk"
+    type="number"
+    value="500"
+    min="0"
+>
 
 
 <label>Leverage (×)</label>
-<input id="leverage" type="number" value="100" min="1">
+
+<input
+    id="leverage"
+    type="number"
+    value="100"
+    min="1"
+>
 
 
-<label id="entryLabel">Entry Price (USD)</label>
-<input id="entry" type="number" value="70" min="0" step="0.0001">
+<label id="entryLabel">
+    Entry Price (USD)
+</label>
+
+<input
+    id="entry"
+    type="number"
+    value="70"
+    min="0"
+    step="0.0001"
+>
 
 
-<label id="slLabel">Stop Loss Price (USD)</label>
-<input id="sl" type="number" value="72" min="0" step="0.0001">
+<label id="slLabel">
+    Stop Loss Price (USD)
+</label>
+
+<input
+    id="sl"
+    type="number"
+    value="68"
+    min="0"
+    step="0.0001"
+>
 
 
-<label id="exitLabel">Exit Price (USD)</label>
-<input id="exit" type="number" value="75" min="0" step="0.0001">
+<label id="exitLabel">
+    Exit Price (USD)
+</label>
+
+<input
+    id="exit"
+    type="number"
+    value="75"
+    min="0"
+    step="0.0001"
+>
 
 
 <button id="calculateBtn">
@@ -175,58 +277,105 @@ Capital + leverage + SL risk + exit P&L
 
 <div class="result">
 
-<div class="small">FINAL LOT SIZE</div>
+    <div class="small">
+        FINAL LOT SIZE
+    </div>
 
-<div class="lot" id="finalLot">—</div>
+    <div class="lot" id="finalLot">
+        —
+    </div>
 
-<div class="row">
-<span>Trade Value</span>
-<b id="tradeValue">—</b>
-</div>
 
-<div class="row">
-<span>Leverage Max Lot</span>
-<b id="maxLot">—</b>
-</div>
+    <div class="row">
 
-<div class="row">
-<span>Risk-Based Lot</span>
-<b id="riskLot">—</b>
-</div>
+        <span>
+            Trade Value
+        </span>
 
-<div class="row">
-<span>SL Loss</span>
-<b id="slLoss">—</b>
-</div>
+        <b id="tradeValue">
+            —
+        </b>
 
-<div class="row">
-<span>Price Difference</span>
-<b id="priceDifference">—</b>
-</div>
+    </div>
 
-<div class="row">
-<span>Expected P&L</span>
-<b class="profit" id="expectedPnl">—</b>
-</div>
+
+    <div class="row">
+
+        <span>
+            Leverage Max Lot
+        </span>
+
+        <b id="maxLot">
+            —
+        </b>
+
+    </div>
+
+
+    <div class="row">
+
+        <span>
+            Risk-Based Lot
+        </span>
+
+        <b id="riskLot">
+            —
+        </b>
+
+    </div>
+
+
+    <div class="row">
+
+        <span>
+            SL Loss
+        </span>
+
+        <b id="slLoss">
+            —
+        </b>
+
+    </div>
+
+
+    <div class="row">
+
+        <span>
+            Price Difference
+        </span>
+
+        <b id="priceDifference">
+            —
+        </b>
+
+    </div>
+
+
+    <div class="row">
+
+        <span>
+            Expected P&L
+        </span>
+
+        <b class="profit" id="expectedPnl">
+            —
+        </b>
+
+    </div>
 
 </div>
 
 
 <div class="note">
 
-USD/INR:
-<b id="usdInrRate">Loading...</b>
+    USD/INR:
+    <b id="usdInrRate">
+        Loading...
+    </b>
 
-<br><br>
+    <br><br>
 
-Formula:<br>
-
-LONG = Exit − Entry<br>
-SHORT = Entry − Exit<br>
-
-Final Lot Size = lower of leverage-based lot and risk-based lot.<br>
-
-Fees, funding and slippage are not included.
+    Fees, funding and slippage are not included.
 
 </div>
 
@@ -240,7 +389,7 @@ let USDINR = null;
 
 
 /* =========================================
-   LIVE USD/INR
+   LIVE USD/INR - PRIMARY
 ========================================= */
 
 async function getUsdInrFromPrimary(){
@@ -253,22 +402,36 @@ async function getUsdInrFromPrimary(){
     );
 
     if(!response.ok){
-        throw new Error("Primary USD/INR request failed");
+
+        throw new Error(
+            "Primary USD/INR request failed"
+        );
+
     }
 
-    const data = await response.json();
+    const data =
+        await response.json();
+
 
     if(
         data.result !== "success" ||
         !data.rates ||
         !data.rates.INR
     ){
-        throw new Error("Invalid primary USD/INR response");
+
+        throw new Error(
+            "Invalid primary USD/INR response"
+        );
+
     }
 
     return Number(data.rates.INR);
 }
 
+
+/* =========================================
+   LIVE USD/INR - BACKUP
+========================================= */
 
 async function getUsdInrFromBackup(){
 
@@ -280,13 +443,26 @@ async function getUsdInrFromBackup(){
     );
 
     if(!response.ok){
-        throw new Error("Backup USD/INR request failed");
+
+        throw new Error(
+            "Backup USD/INR request failed"
+        );
+
     }
 
-    const data = await response.json();
+    const data =
+        await response.json();
 
-    if(!data.rates || !data.rates.INR){
-        throw new Error("Invalid backup USD/INR response");
+
+    if(
+        !data.rates ||
+        !data.rates.INR
+    ){
+
+        throw new Error(
+            "Invalid backup USD/INR response"
+        );
+
     }
 
     return Number(data.rates.INR);
@@ -300,22 +476,34 @@ async function getUsdInrFromBackup(){
 async function updateUsdInr(){
 
     const rateElement =
-        document.getElementById("usdInrRate");
+        document.getElementById(
+            "usdInrRate"
+        );
+
 
     try{
 
         USDINR =
             await getUsdInrFromPrimary();
 
+
         if(
             !Number.isFinite(USDINR) ||
             USDINR <= 0
         ){
-            throw new Error("Invalid USD/INR rate");
+
+            throw new Error(
+                "Invalid USD/INR rate"
+            );
+
         }
 
+
         rateElement.textContent =
-            "₹" + USDINR.toFixed(2) + " (live)";
+            "₹" +
+            USDINR.toFixed(2) +
+            " (live)";
+
 
     }catch(primaryError){
 
@@ -324,20 +512,30 @@ async function updateUsdInr(){
             primaryError
         );
 
+
         try{
 
             USDINR =
                 await getUsdInrFromBackup();
 
+
             if(
                 !Number.isFinite(USDINR) ||
                 USDINR <= 0
             ){
-                throw new Error("Invalid backup USD/INR rate");
+
+                throw new Error(
+                    "Invalid backup USD/INR rate"
+                );
+
             }
 
+
             rateElement.textContent =
-                "₹" + USDINR.toFixed(2) + " (live)";
+                "₹" +
+                USDINR.toFixed(2) +
+                " (live)";
+
 
         }catch(backupError){
 
@@ -346,6 +544,7 @@ async function updateUsdInr(){
                 backupError
             );
 
+
             if(
                 USDINR !== null &&
                 Number.isFinite(USDINR) &&
@@ -353,16 +552,52 @@ async function updateUsdInr(){
             ){
 
                 rateElement.textContent =
-                    "₹" + USDINR.toFixed(2) +
+                    "₹" +
+                    USDINR.toFixed(2) +
                     " (last available)";
 
             }else{
 
                 rateElement.textContent =
                     "Unavailable";
+
             }
+
         }
+
     }
+
+}
+
+
+/* =========================================
+   POPUP
+========================================= */
+
+function showPopup(){
+
+    const popup =
+        document.getElementById(
+            "popup"
+        );
+
+
+    popup.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        function(){
+
+            popup.classList.remove(
+                "show"
+            );
+
+        },
+        1500
+    );
+
 }
 
 
@@ -372,26 +607,51 @@ async function updateUsdInr(){
 
 function clearResults(){
 
-    document.getElementById("finalLot")
-        .textContent = "—";
+    document.getElementById(
+        "finalLot"
+    ).textContent = "—";
 
-    document.getElementById("tradeValue")
-        .textContent = "—";
 
-    document.getElementById("maxLot")
-        .textContent = "—";
+    document.getElementById(
+        "tradeValue"
+    ).textContent = "—";
 
-    document.getElementById("riskLot")
-        .textContent = "—";
 
-    document.getElementById("slLoss")
-        .textContent = "—";
+    document.getElementById(
+        "maxLot"
+    ).textContent = "—";
 
-    document.getElementById("priceDifference")
-        .textContent = "—";
 
-    document.getElementById("expectedPnl")
-        .textContent = "—";
+    document.getElementById(
+        "riskLot"
+    ).textContent = "—";
+
+
+    document.getElementById(
+        "slLoss"
+    ).textContent = "—";
+
+
+    document.getElementById(
+        "priceDifference"
+    ).textContent = "—";
+
+
+    const pnlElement =
+        document.getElementById(
+            "expectedPnl"
+        );
+
+
+    pnlElement.textContent = "—";
+
+
+    pnlElement.classList.remove(
+        "profit-positive",
+        "profit-negative",
+        "profit-zero"
+    );
+
 }
 
 
@@ -402,10 +662,15 @@ function clearResults(){
 function updatePositionLabels(){
 
     const position =
-        document.getElementById("position").value;
+        document.getElementById(
+            "position"
+        ).value;
+
 
     const directionText =
-        document.getElementById("directionText");
+        document.getElementById(
+            "directionText"
+        );
 
 
     if(position === "long"){
@@ -417,6 +682,7 @@ function updatePositionLabels(){
 
         directionText.textContent =
             "SHORT: Exit below Entry = Profit | Exit above Entry = Loss";
+
     }
 
 }
@@ -429,46 +695,62 @@ function updatePositionLabels(){
 function calc(){
 
     const position =
-        document.getElementById("position").value;
+        document.getElementById(
+            "position"
+        ).value;
 
 
     const c =
         Number(
-            document.getElementById("capital").value
+            document.getElementById(
+                "capital"
+            ).value
         );
 
 
     const r =
         Number(
-            document.getElementById("risk").value
+            document.getElementById(
+                "risk"
+            ).value
         );
 
 
     const l =
         Number(
-            document.getElementById("leverage").value
+            document.getElementById(
+                "leverage"
+            ).value
         );
 
 
     const e =
         Number(
-            document.getElementById("entry").value
+            document.getElementById(
+                "entry"
+            ).value
         );
 
 
     const s =
         Number(
-            document.getElementById("sl").value
+            document.getElementById(
+                "sl"
+            ).value
         );
 
 
     const exit =
         Number(
-            document.getElementById("exit").value
+            document.getElementById(
+                "exit"
+            ).value
         );
 
 
-    /* INPUT CHECK */
+    /* =========================================
+       INPUT CHECK
+    ========================================= */
 
     if(
         !(
@@ -484,10 +766,13 @@ function calc(){
         clearResults();
 
         return;
+
     }
 
 
-    /* USD INR CHECK */
+    /* =========================================
+       USD INR CHECK
+    ========================================= */
 
     if(
         USDINR === null ||
@@ -498,16 +783,55 @@ function calc(){
         clearResults();
 
         return;
+
     }
 
 
-    /* ENTRY AND SL CANNOT BE SAME */
+    /* =========================================
+       ENTRY AND SL CANNOT BE SAME
+    ========================================= */
 
     if(s === e){
 
         clearResults();
 
         return;
+
+    }
+
+
+    /* =========================================
+       SL VALIDATION
+    =========================================
+
+       LONG:
+       SL must be BELOW Entry
+
+       SHORT:
+       SL must be ABOVE Entry
+    ========================================= */
+
+    if(
+        position === "long" &&
+        s >= e
+    ){
+
+        clearResults();
+
+        return;
+
+    }
+
+
+    if(
+        position === "short" &&
+        s <= e
+    ){
+
+        clearResults();
+
+        return;
+
     }
 
 
@@ -569,6 +893,7 @@ function calc(){
 
         priceDifference =
             e - exit;
+
     }
 
 
@@ -596,8 +921,9 @@ function calc(){
        DISPLAY FINAL LOT
     ========================================= */
 
-    document.getElementById("finalLot")
-        .textContent =
+    document.getElementById(
+        "finalLot"
+    ).textContent =
         final.toFixed(3) +
         " lots";
 
@@ -606,18 +932,22 @@ function calc(){
        TRADE VALUE
     ========================================= */
 
-    document.getElementById("tradeValue")
-        .textContent =
+    document.getElementById(
+        "tradeValue"
+    ).textContent =
         "₹" +
-        trade.toLocaleString("en-IN");
+        trade.toLocaleString(
+            "en-IN"
+        );
 
 
     /* =========================================
        LEVERAGE MAX LOT
     ========================================= */
 
-    document.getElementById("maxLot")
-        .textContent =
+    document.getElementById(
+        "maxLot"
+    ).textContent =
         max.toFixed(3);
 
 
@@ -625,8 +955,9 @@ function calc(){
        RISK LOT
     ========================================= */
 
-    document.getElementById("riskLot")
-        .textContent =
+    document.getElementById(
+        "riskLot"
+    ).textContent =
         riskLotValue.toFixed(3);
 
 
@@ -634,8 +965,9 @@ function calc(){
        SL LOSS
     ========================================= */
 
-    document.getElementById("slLoss")
-        .textContent =
+    document.getElementById(
+        "slLoss"
+    ).textContent =
         "₹" +
         actualSlLoss.toFixed(2);
 
@@ -645,11 +977,14 @@ function calc(){
     ========================================= */
 
     const differenceSign =
-        priceDifference > 0 ? "+" : "";
+        priceDifference > 0
+            ? "+"
+            : "";
 
 
-    document.getElementById("priceDifference")
-        .textContent =
+    document.getElementById(
+        "priceDifference"
+    ).textContent =
         differenceSign +
         priceDifference.toFixed(4) +
         " USD";
@@ -657,21 +992,63 @@ function calc(){
 
     /* =========================================
        EXPECTED P&L
-
-       IMPORTANT:
-       Do NOT use Math.abs()
-       because we need negative P&L
     ========================================= */
 
+    const pnlElement =
+        document.getElementById(
+            "expectedPnl"
+        );
+
+
     const pnlSign =
-        expectedPnl > 0 ? "+" : "";
+        expectedPnl > 0
+            ? "+"
+            : "";
 
 
-    document.getElementById("expectedPnl")
-        .textContent =
+    pnlElement.textContent =
         pnlSign +
         "₹" +
         expectedPnl.toFixed(2);
+
+
+    /* =========================================
+       P&L COLOR
+    ========================================= */
+
+    pnlElement.classList.remove(
+        "profit-positive",
+        "profit-negative",
+        "profit-zero"
+    );
+
+
+    if(expectedPnl > 0){
+
+        pnlElement.classList.add(
+            "profit-positive"
+        );
+
+    }else if(expectedPnl < 0){
+
+        pnlElement.classList.add(
+            "profit-negative"
+        );
+
+    }else{
+
+        pnlElement.classList.add(
+            "profit-zero"
+        );
+
+    }
+
+
+    /* =========================================
+       SHOW POPUP
+    ========================================= */
+
+    showPopup();
 
 }
 
@@ -681,7 +1058,9 @@ function calc(){
 ========================================= */
 
 document
-    .getElementById("calculateBtn")
+    .getElementById(
+        "calculateBtn"
+    )
     .addEventListener(
         "click",
         calc
@@ -693,7 +1072,9 @@ document
 ========================================= */
 
 document
-    .getElementById("position")
+    .getElementById(
+        "position"
+    )
     .addEventListener(
         "change",
         function(){
@@ -711,23 +1092,29 @@ document
 ========================================= */
 
 document
-    .querySelectorAll("input")
-    .forEach(function(input){
+    .querySelectorAll(
+        "input"
+    )
+    .forEach(
+        function(input){
 
-        input.addEventListener(
-            "keydown",
-            function(event){
+            input.addEventListener(
+                "keydown",
+                function(event){
 
-                if(event.key === "Enter"){
+                    if(
+                        event.key === "Enter"
+                    ){
 
-                    calc();
+                        calc();
+
+                    }
 
                 }
+            );
 
-            }
-        );
-
-    });
+        }
+    );
 
 
 /* =========================================

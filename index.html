@@ -48,12 +48,14 @@ label{
     margin:14px 0 6px
 }
 
-input{
+input,
+select{
     width:100%;
     padding:13px;
     border:1px solid #d1d5db;
     border-radius:10px;
-    font-size:16px
+    font-size:16px;
+    background:white
 }
 
 .result{
@@ -82,6 +84,11 @@ input{
     padding:9px 0
 }
 
+.profit{
+    font-size:20px;
+    font-weight:bold
+}
+
 .note{
     font-size:12px;
     color:#6b7280;
@@ -99,8 +106,14 @@ input{
 <h1>Delta Lot Size Calculator</h1>
 
 <div class="sub">
-Capital + leverage + SL risk
+Capital + leverage + SL risk + exit P&L
 </div>
+
+<label>Position</label>
+<select id="position">
+    <option value="long">LONG</option>
+    <option value="short">SHORT</option>
+</select>
 
 <label>Capital / Margin (₹)</label>
 <input id="capital" type="number" value="500" min="0">
@@ -116,6 +129,9 @@ Capital + leverage + SL risk
 
 <label>Stop Loss Price (USD)</label>
 <input id="sl" type="number" value="72" min="0" step="0.0001">
+
+<label>Exit Price (USD)</label>
+<input id="exit" type="number" value="75" min="0" step="0.0001">
 
 <div class="result">
 
@@ -143,11 +159,24 @@ Capital + leverage + SL risk
 <b id="slLoss">—</b>
 </div>
 
+<div class="row">
+<span>Price Difference</span>
+<b id="priceDifference">—</b>
+</div>
+
+<div class="row">
+<span>Expected P&L</span>
+<b class="profit" id="expectedPnl">—</b>
+</div>
+
 </div>
 
 <div class="note">
 USD/INR: <b id="usdInrRate">Loading...</b><br>
-Formula: Final Lot Size = lower of leverage-based lot and risk-based lot.
+Formula:<br>
+LONG = Exit − Entry<br>
+SHORT = Entry − Exit<br>
+Final Lot Size = lower of leverage-based lot and risk-based lot.<br>
 Fees, funding and slippage are not included.
 </div>
 
@@ -220,14 +249,10 @@ async function updateUsdInr(){
     const rateElement =
         document.getElementById("usdInrRate");
 
-
     try{
-
-        /* Try primary source first */
 
         USDINR =
             await getUsdInrFromPrimary();
-
 
         if(
             !Number.isFinite(USDINR) ||
@@ -236,13 +261,10 @@ async function updateUsdInr(){
             throw new Error("Invalid USD/INR rate");
         }
 
-
         rateElement.textContent =
             "₹" + USDINR.toFixed(2) + " (live)";
 
-
         calc();
-
 
     }catch(primaryError){
 
@@ -251,14 +273,10 @@ async function updateUsdInr(){
             primaryError
         );
 
-
         try{
-
-            /* Try backup source */
 
             USDINR =
                 await getUsdInrFromBackup();
-
 
             if(
                 !Number.isFinite(USDINR) ||
@@ -267,13 +285,10 @@ async function updateUsdInr(){
                 throw new Error("Invalid backup USD/INR rate");
             }
 
-
             rateElement.textContent =
                 "₹" + USDINR.toFixed(2) + " (live)";
 
-
             calc();
-
 
         }catch(backupError){
 
@@ -281,13 +296,6 @@ async function updateUsdInr(){
                 "All USD/INR sources failed:",
                 backupError
             );
-
-
-            /*
-               If a previous live rate exists,
-               keep using it instead of breaking
-               the calculator.
-            */
 
             if(
                 USDINR !== null &&
@@ -306,23 +314,39 @@ async function updateUsdInr(){
                 rateElement.textContent =
                     "Unavailable";
 
-                document.getElementById("finalLot")
-                    .textContent = "—";
-
-                document.getElementById("tradeValue")
-                    .textContent = "—";
-
-                document.getElementById("maxLot")
-                    .textContent = "—";
-
-                document.getElementById("riskLot")
-                    .textContent = "—";
-
-                document.getElementById("slLoss")
-                    .textContent = "—";
+                clearResults();
             }
         }
     }
+}
+
+
+/* =========================================
+   CLEAR RESULTS
+========================================= */
+
+function clearResults(){
+
+    document.getElementById("finalLot")
+        .textContent = "—";
+
+    document.getElementById("tradeValue")
+        .textContent = "—";
+
+    document.getElementById("maxLot")
+        .textContent = "—";
+
+    document.getElementById("riskLot")
+        .textContent = "—";
+
+    document.getElementById("slLoss")
+        .textContent = "—";
+
+    document.getElementById("priceDifference")
+        .textContent = "—";
+
+    document.getElementById("expectedPnl")
+        .textContent = "—";
 }
 
 
@@ -331,6 +355,9 @@ async function updateUsdInr(){
 ========================================= */
 
 function calc(){
+
+    const position =
+        document.getElementById("position").value;
 
     const c =
         Number(
@@ -357,10 +384,13 @@ function calc(){
             document.getElementById("sl").value
         );
 
+    const exit =
+        Number(
+            document.getElementById("exit").value
+        );
 
-    /*
-       Check inputs
-    */
+
+    /* Check inputs */
 
     if(
         !(
@@ -368,20 +398,17 @@ function calc(){
             r >= 0 &&
             l > 0 &&
             e > 0 &&
-            s > 0
+            s > 0 &&
+            exit > 0
         )
     ){
 
-        document.getElementById("finalLot")
-            .textContent = "—";
-
+        clearResults();
         return;
     }
 
 
-    /*
-       USD/INR not available yet
-    */
+    /* USD/INR not available */
 
     if(
         USDINR === null ||
@@ -389,34 +416,16 @@ function calc(){
         USDINR <= 0
     ){
 
-        document.getElementById("finalLot")
-            .textContent = "—";
-
+        clearResults();
         return;
     }
 
 
-    /*
-       Entry and SL cannot be identical
-    */
+    /* Entry and SL cannot be identical */
 
     if(s === e){
 
-        document.getElementById("finalLot")
-            .textContent = "—";
-
-        document.getElementById("tradeValue")
-            .textContent = "—";
-
-        document.getElementById("maxLot")
-            .textContent = "—";
-
-        document.getElementById("riskLot")
-            .textContent = "—";
-
-        document.getElementById("slLoss")
-            .textContent = "—";
-
+        clearResults();
         return;
     }
 
@@ -472,6 +481,52 @@ function calc(){
 
 
     /*
+       Price difference
+
+       LONG:
+       Exit - Entry
+
+       SHORT:
+       Entry - Exit
+    */
+
+    let priceDifference;
+
+    if(position === "long"){
+
+        priceDifference =
+            exit - e;
+
+    }else{
+
+        priceDifference =
+            e - exit;
+    }
+
+
+    /*
+       Expected P&L in INR
+
+       Lot × price difference × USD/INR
+    */
+
+    const expectedPnl =
+        final *
+        priceDifference *
+        USDINR;
+
+
+    /*
+       Actual SL loss
+    */
+
+    const actualSlLoss =
+        final *
+        Math.abs(s - e) *
+        USDINR;
+
+
+    /*
        Display final lot
     */
 
@@ -509,17 +564,41 @@ function calc(){
 
 
     /*
-       Actual SL loss at final lot
+       SL Loss
     */
 
     document.getElementById("slLoss")
         .textContent =
         "₹" +
-        (
-            final *
-            Math.abs(s - e) *
-            USDINR
-        ).toFixed(2);
+        actualSlLoss.toFixed(2);
+
+
+    /*
+       Price Difference
+    */
+
+    const differenceSign =
+        priceDifference >= 0 ? "+" : "";
+
+    document.getElementById("priceDifference")
+        .textContent =
+        differenceSign +
+        priceDifference.toFixed(4) +
+        " USD";
+
+
+    /*
+       Expected P&L
+    */
+
+    const pnlSign =
+        expectedPnl >= 0 ? "+" : "";
+
+    document.getElementById("expectedPnl")
+        .textContent =
+        pnlSign +
+        "₹" +
+        Math.abs(expectedPnl).toFixed(2);
 }
 
 
@@ -528,11 +607,16 @@ function calc(){
 ========================================= */
 
 document
-    .querySelectorAll("input")
+    .querySelectorAll("input, select")
     .forEach(function(x){
 
         x.addEventListener(
             "input",
+            calc
+        );
+
+        x.addEventListener(
+            "change",
             calc
         );
 

@@ -58,6 +58,23 @@ select{
     background:white
 }
 
+button{
+    width:100%;
+    margin-top:18px;
+    padding:14px;
+    border:0;
+    border-radius:10px;
+    background:#111827;
+    color:white;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer
+}
+
+button:hover{
+    background:#1f2937
+}
+
 .result{
     margin-top:20px;
     background:#111827;
@@ -95,6 +112,12 @@ select{
     line-height:1.5;
     margin-top:14px
 }
+
+.direction{
+    font-size:13px;
+    margin-top:6px;
+    color:#6b7280
+}
 </style>
 </head>
 
@@ -110,34 +133,51 @@ Capital + leverage + SL risk + exit P&L
 </div>
 
 <label>Position</label>
+
 <select id="position">
-    <option value="long">LONG</option>
-    <option value="short">SHORT</option>
+    <option value="long">LONG POSITION</option>
+    <option value="short">SHORT POSITION</option>
 </select>
+
+<div class="direction" id="directionText">
+    LONG: Exit above Entry = Profit | Exit below Entry = Loss
+</div>
+
 
 <label>Capital / Margin (₹)</label>
 <input id="capital" type="number" value="500" min="0">
 
+
 <label>Maximum SL Loss (₹)</label>
 <input id="risk" type="number" value="500" min="0">
+
 
 <label>Leverage (×)</label>
 <input id="leverage" type="number" value="100" min="1">
 
-<label>Entry Price (USD)</label>
+
+<label id="entryLabel">Entry Price (USD)</label>
 <input id="entry" type="number" value="70" min="0" step="0.0001">
 
-<label>Stop Loss Price (USD)</label>
+
+<label id="slLabel">Stop Loss Price (USD)</label>
 <input id="sl" type="number" value="72" min="0" step="0.0001">
 
-<label>Exit Price (USD)</label>
+
+<label id="exitLabel">Exit Price (USD)</label>
 <input id="exit" type="number" value="75" min="0" step="0.0001">
+
+
+<button id="calculateBtn">
+    CALCULATE
+</button>
+
 
 <div class="result">
 
 <div class="small">FINAL LOT SIZE</div>
 
-<div class="lot" id="finalLot">Loading...</div>
+<div class="lot" id="finalLot">—</div>
 
 <div class="row">
 <span>Trade Value</span>
@@ -171,17 +211,28 @@ Capital + leverage + SL risk + exit P&L
 
 </div>
 
+
 <div class="note">
-USD/INR: <b id="usdInrRate">Loading...</b><br>
+
+USD/INR:
+<b id="usdInrRate">Loading...</b>
+
+<br><br>
+
 Formula:<br>
+
 LONG = Exit − Entry<br>
 SHORT = Entry − Exit<br>
+
 Final Lot Size = lower of leverage-based lot and risk-based lot.<br>
+
 Fees, funding and slippage are not included.
+
 </div>
 
 </div>
 </div>
+
 
 <script>
 
@@ -190,8 +241,6 @@ let USDINR = null;
 
 /* =========================================
    LIVE USD/INR
-   Primary: ExchangeRate-API
-   Backup: Frankfurter
 ========================================= */
 
 async function getUsdInrFromPrimary(){
@@ -244,6 +293,10 @@ async function getUsdInrFromBackup(){
 }
 
 
+/* =========================================
+   UPDATE USD/INR
+========================================= */
+
 async function updateUsdInr(){
 
     const rateElement =
@@ -263,8 +316,6 @@ async function updateUsdInr(){
 
         rateElement.textContent =
             "₹" + USDINR.toFixed(2) + " (live)";
-
-        calc();
 
     }catch(primaryError){
 
@@ -288,8 +339,6 @@ async function updateUsdInr(){
             rateElement.textContent =
                 "₹" + USDINR.toFixed(2) + " (live)";
 
-            calc();
-
         }catch(backupError){
 
             console.error(
@@ -307,14 +356,10 @@ async function updateUsdInr(){
                     "₹" + USDINR.toFixed(2) +
                     " (last available)";
 
-                calc();
-
             }else{
 
                 rateElement.textContent =
                     "Unavailable";
-
-                clearResults();
             }
         }
     }
@@ -351,6 +396,33 @@ function clearResults(){
 
 
 /* =========================================
+   POSITION CHANGE
+========================================= */
+
+function updatePositionLabels(){
+
+    const position =
+        document.getElementById("position").value;
+
+    const directionText =
+        document.getElementById("directionText");
+
+
+    if(position === "long"){
+
+        directionText.textContent =
+            "LONG: Exit above Entry = Profit | Exit below Entry = Loss";
+
+    }else{
+
+        directionText.textContent =
+            "SHORT: Exit below Entry = Profit | Exit above Entry = Loss";
+    }
+
+}
+
+
+/* =========================================
    CALCULATOR
 ========================================= */
 
@@ -359,30 +431,36 @@ function calc(){
     const position =
         document.getElementById("position").value;
 
+
     const c =
         Number(
             document.getElementById("capital").value
         );
+
 
     const r =
         Number(
             document.getElementById("risk").value
         );
 
+
     const l =
         Number(
             document.getElementById("leverage").value
         );
+
 
     const e =
         Number(
             document.getElementById("entry").value
         );
 
+
     const s =
         Number(
             document.getElementById("sl").value
         );
+
 
     const exit =
         Number(
@@ -390,7 +468,7 @@ function calc(){
         );
 
 
-    /* Check inputs */
+    /* INPUT CHECK */
 
     if(
         !(
@@ -404,11 +482,12 @@ function calc(){
     ){
 
         clearResults();
+
         return;
     }
 
 
-    /* USD/INR not available */
+    /* USD INR CHECK */
 
     if(
         USDINR === null ||
@@ -417,61 +496,49 @@ function calc(){
     ){
 
         clearResults();
+
         return;
     }
 
 
-    /* Entry and SL cannot be identical */
+    /* ENTRY AND SL CANNOT BE SAME */
 
     if(s === e){
 
         clearResults();
+
         return;
     }
 
 
-    /*
-       Total trade value in INR
-
-       Capital × Leverage
-    */
+    /* =========================================
+       TRADE VALUE
+    ========================================= */
 
     const trade =
         c * l;
 
 
-    /*
-       Maximum lot allowed by leverage
-
-       INR trade value
-       → USD trade value
-       → divide by entry price
-    */
+    /* =========================================
+       LEVERAGE MAX LOT
+    ========================================= */
 
     const max =
         (trade / USDINR) / e;
 
 
-    /*
-       Maximum lot allowed by SL risk
-
-       Maximum INR loss
-       → USD loss
-       → divide by USD loss per lot
-    */
+    /* =========================================
+       RISK BASED LOT
+    ========================================= */
 
     const riskLotValue =
         (r / USDINR) /
         Math.abs(s - e);
 
 
-    /*
-       Final lot size
-
-       Lower of:
-       1. Leverage limit
-       2. Risk limit
-    */
+    /* =========================================
+       FINAL LOT
+    ========================================= */
 
     const final =
         Math.min(
@@ -480,17 +547,18 @@ function calc(){
         );
 
 
-    /*
-       Price difference
-
+    /* =========================================
+       PRICE DIFFERENCE
+       
        LONG:
        Exit - Entry
 
        SHORT:
        Entry - Exit
-    */
+    ========================================= */
 
     let priceDifference;
+
 
     if(position === "long"){
 
@@ -504,11 +572,9 @@ function calc(){
     }
 
 
-    /*
-       Expected P&L in INR
-
-       Lot × price difference × USD/INR
-    */
+    /* =========================================
+       EXPECTED P&L
+    ========================================= */
 
     const expectedPnl =
         final *
@@ -516,9 +582,9 @@ function calc(){
         USDINR;
 
 
-    /*
-       Actual SL loss
-    */
+    /* =========================================
+       ACTUAL SL LOSS
+    ========================================= */
 
     const actualSlLoss =
         final *
@@ -526,18 +592,19 @@ function calc(){
         USDINR;
 
 
-    /*
-       Display final lot
-    */
+    /* =========================================
+       DISPLAY FINAL LOT
+    ========================================= */
 
     document.getElementById("finalLot")
         .textContent =
-        final.toFixed(3) + " lots";
+        final.toFixed(3) +
+        " lots";
 
 
-    /*
-       Trade value
-    */
+    /* =========================================
+       TRADE VALUE
+    ========================================= */
 
     document.getElementById("tradeValue")
         .textContent =
@@ -545,27 +612,27 @@ function calc(){
         trade.toLocaleString("en-IN");
 
 
-    /*
-       Leverage maximum lot
-    */
+    /* =========================================
+       LEVERAGE MAX LOT
+    ========================================= */
 
     document.getElementById("maxLot")
         .textContent =
         max.toFixed(3);
 
 
-    /*
-       Risk based lot
-    */
+    /* =========================================
+       RISK LOT
+    ========================================= */
 
     document.getElementById("riskLot")
         .textContent =
         riskLotValue.toFixed(3);
 
 
-    /*
-       SL Loss
-    */
+    /* =========================================
+       SL LOSS
+    ========================================= */
 
     document.getElementById("slLoss")
         .textContent =
@@ -573,12 +640,13 @@ function calc(){
         actualSlLoss.toFixed(2);
 
 
-    /*
-       Price Difference
-    */
+    /* =========================================
+       PRICE DIFFERENCE
+    ========================================= */
 
     const differenceSign =
-        priceDifference >= 0 ? "+" : "";
+        priceDifference > 0 ? "+" : "";
+
 
     document.getElementById("priceDifference")
         .textContent =
@@ -587,51 +655,93 @@ function calc(){
         " USD";
 
 
-    /*
-       Expected P&L
-    */
+    /* =========================================
+       EXPECTED P&L
+
+       IMPORTANT:
+       Do NOT use Math.abs()
+       because we need negative P&L
+    ========================================= */
 
     const pnlSign =
-        expectedPnl >= 0 ? "+" : "";
+        expectedPnl > 0 ? "+" : "";
+
 
     document.getElementById("expectedPnl")
         .textContent =
         pnlSign +
         "₹" +
-        Math.abs(expectedPnl).toFixed(2);
+        expectedPnl.toFixed(2);
+
 }
 
 
 /* =========================================
-   INPUT UPDATES
+   CALCULATE BUTTON
 ========================================= */
 
 document
-    .querySelectorAll("input, select")
-    .forEach(function(x){
+    .getElementById("calculateBtn")
+    .addEventListener(
+        "click",
+        calc
+    );
 
-        x.addEventListener(
-            "input",
-            calc
-        );
 
-        x.addEventListener(
-            "change",
-            calc
+/* =========================================
+   POSITION SELECT
+========================================= */
+
+document
+    .getElementById("position")
+    .addEventListener(
+        "change",
+        function(){
+
+            updatePositionLabels();
+
+            clearResults();
+
+        }
+    );
+
+
+/* =========================================
+   ENTER KEY = CALCULATE
+========================================= */
+
+document
+    .querySelectorAll("input")
+    .forEach(function(input){
+
+        input.addEventListener(
+            "keydown",
+            function(event){
+
+                if(event.key === "Enter"){
+
+                    calc();
+
+                }
+
+            }
         );
 
     });
 
 
 /* =========================================
-   INITIAL USD/INR UPDATE
+   INITIAL
 ========================================= */
+
+updatePositionLabels();
 
 updateUsdInr();
 
 
 /* =========================================
-   AUTO REFRESH EVERY 5 MINUTES
+   USD/INR AUTO UPDATE
+   Every 5 minutes
 ========================================= */
 
 setInterval(

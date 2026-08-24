@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#111827">
-
 <title>Delta Lot Size Calculator</title>
 
 <style>
@@ -21,12 +20,12 @@ body{
 
 .container{
     max-width:650px;
-    margin:30px auto;
-    padding:20px;
+    margin:25px auto;
+    padding:15px;
 }
 
 .card{
-    background:white;
+    background:#fff;
     border-radius:16px;
     padding:24px;
     box-shadow:0 8px 25px rgba(0,0,0,.08);
@@ -40,12 +39,12 @@ h1{
 
 label{
     display:block;
+    margin:14px 0 6px;
     font-weight:600;
-    margin-top:15px;
-    margin-bottom:6px;
 }
 
-input,select{
+input,
+select{
     width:100%;
     padding:12px;
     border:1px solid #d1d5db;
@@ -54,7 +53,8 @@ input,select{
     outline:none;
 }
 
-input:focus,select:focus{
+input:focus,
+select:focus{
     border-color:#2563eb;
 }
 
@@ -66,9 +66,9 @@ input:focus,select:focus{
 
 button{
     width:100%;
-    margin-top:22px;
     padding:14px;
-    border:none;
+    margin-top:22px;
+    border:0;
     border-radius:9px;
     background:#2563eb;
     color:white;
@@ -83,14 +83,14 @@ button:hover{
 
 .rate{
     text-align:center;
-    margin-top:16px;
+    margin-top:15px;
     font-size:14px;
     color:#374151;
 }
 
 .results{
-    margin-top:22px;
     display:none;
+    margin-top:22px;
 }
 
 .result-box{
@@ -102,8 +102,8 @@ button:hover{
 }
 
 .result-title{
-    font-size:13px;
     color:#6b7280;
+    font-size:13px;
     margin-bottom:5px;
 }
 
@@ -112,14 +112,14 @@ button:hover{
     font-weight:bold;
 }
 
-.lot{
+.final{
     background:#eff6ff;
     border:2px solid #2563eb;
 }
 
-.lot .result-value{
+.final .result-value{
     color:#2563eb;
-    font-size:26px;
+    font-size:28px;
 }
 
 .profit{
@@ -136,21 +136,45 @@ button:hover{
     color:#6b7280;
 }
 
+.optional{
+    margin-top:28px;
+    padding-top:20px;
+    border-top:2px solid #e5e7eb;
+}
+
+.optional h2{
+    font-size:18px;
+    margin:0 0 8px;
+}
+
+.optional-text{
+    font-size:13px;
+    color:#6b7280;
+    margin-bottom:10px;
+}
+
+.note{
+    margin-top:15px;
+    color:#6b7280;
+    font-size:12px;
+    line-height:1.5;
+}
+
 .popup{
+    display:none;
     position:fixed;
     inset:0;
     background:rgba(0,0,0,.5);
-    display:none;
+    z-index:999;
     align-items:center;
     justify-content:center;
     padding:20px;
-    z-index:1000;
 }
 
 .popup-card{
-    background:white;
+    background:#fff;
     width:100%;
-    max-width:450px;
+    max-width:430px;
     border-radius:15px;
     padding:25px;
     box-shadow:0 15px 40px rgba(0,0,0,.25);
@@ -162,14 +186,6 @@ button:hover{
 
 .close{
     background:#111827;
-    margin-top:15px;
-}
-
-.note{
-    font-size:12px;
-    color:#6b7280;
-    margin-top:15px;
-    line-height:1.5;
 }
 
 @media(max-width:500px){
@@ -179,7 +195,7 @@ button:hover{
 
     .container{
         margin:10px auto;
-        padding:12px;
+        padding:10px;
     }
 
     .card{
@@ -204,77 +220,185 @@ button:hover{
 </select>
 
 <label>Entry Price (USD)</label>
-<input type="number" id="entry" step="0.01" placeholder="Example: 100000">
+<input
+    type="number"
+    id="entry"
+    step="0.01"
+    placeholder="Example: 100000"
+>
 
 <label>Stop Loss Price (USD)</label>
-<input type="number" id="stop" step="0.01" placeholder="Example: 99000">
-
-<label>Exit Price (USD)</label>
-<input type="number" id="exit" step="0.01" placeholder="Example: 105000">
+<input
+    type="number"
+    id="stop"
+    step="0.01"
+    placeholder="Example: 99000"
+>
 
 <div class="row">
 
 <div>
 <label>Trade Value (₹)</label>
-<input type="number" id="tradeValue" value="20000" min="1">
+<input
+    type="number"
+    id="tradeValue"
+    value="20000"
+    min="1"
+>
 </div>
 
 <div>
 <label>Leverage</label>
-<input type="number" id="leverage" value="100" min="1">
+<input
+    type="number"
+    id="leverage"
+    value="100"
+    min="1"
+>
 </div>
 
 </div>
 
 <label>Maximum Risk (₹)</label>
-<input type="number" id="risk" value="200" min="0">
+<input
+    type="number"
+    id="risk"
+    value="300"
+    min="0"
+>
 
 <button onclick="calculate()">CALCULATE</button>
 
 <div class="rate">
-    USD/INR: <strong id="usdRate">Loading...</strong>
+USD/INR:
+<strong id="usdRate">₹95.79</strong>
 </div>
+
+
+<!-- RESULTS -->
 
 <div class="results" id="results">
 
-<div class="result-box lot">
-    <div class="result-title">FINAL LOT SIZE</div>
-    <div class="result-value" id="finalLot">-</div>
+<div class="result-box final">
+
+<div class="result-title">
+FINAL LOT SIZE
 </div>
 
-<div class="result-box">
-    <div class="result-title">Trade Value</div>
-    <div class="result-value" id="tradeResult">-</div>
+<div class="result-value" id="finalLot">
+-
 </div>
 
-<div class="result-box">
-    <div class="result-title">Leverage Max Lot</div>
-    <div class="result-value" id="maxLot">-</div>
 </div>
 
-<div class="result-box">
-    <div class="result-title">Risk-Based Lot</div>
-    <div class="result-value" id="riskLot">-</div>
-</div>
 
 <div class="result-box">
-    <div class="result-title">SL Loss</div>
-    <div class="result-value loss" id="slLoss">-</div>
+
+<div class="result-title">
+Trade Value
 </div>
 
-<div class="result-box">
-    <div class="result-title">Price Difference</div>
-    <div class="result-value" id="priceDiff">-</div>
+<div class="result-value" id="tradeResult">
+-
 </div>
 
-<div class="result-box">
-    <div class="result-title">Expected P&L</div>
-    <div class="result-value" id="pnl">-</div>
 </div>
+
+
+<div class="result-box">
+
+<div class="result-title">
+Leverage Max Lot
+</div>
+
+<div class="result-value" id="maxLot">
+-
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div class="result-title">
+Risk-Based Lot
+</div>
+
+<div class="result-value" id="riskLot">
+-
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div class="result-title">
+SL Loss
+</div>
+
+<div class="result-value" id="slLoss">
+-
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div class="result-title">
+SL Price Difference
+</div>
+
+<div class="result-value" id="slDifference">
+-
+</div>
+
+</div>
+
+
+<!-- OPTIONAL P&L -->
+
+<div class="optional">
+
+<h2>Optional P&L Calculation</h2>
+
+<div class="optional-text">
+Exit price is only required if you want to calculate expected P&L.
+It does NOT affect the lot size.
+</div>
+
+<label>Exit Price (USD)</label>
+
+<input
+    type="number"
+    id="exit"
+    step="0.01"
+    placeholder="Optional"
+    oninput="calculatePnl()"
+>
+
+<div class="result-box" style="margin-top:12px">
+
+<div class="result-title">
+Expected P&L
+</div>
+
+<div class="result-value" id="pnl">
+-
+</div>
+
+</div>
+
+</div>
+
 
 <div class="note">
-    1 lot = 0.001 BTC.<br>
-    Fees, funding and slippage are not included.
+
+1 lot = 0.001 BTC.<br>
+Final Lot Size = lower of Leverage Max Lot and Risk-Based Lot.<br>
+Fees, funding and slippage are not included.
+
 </div>
 
 </div>
@@ -289,7 +413,7 @@ button:hover{
 
 <div class="popup-card">
 
-<h2>Calculation Result</h2>
+<h2>Calculation Complete</h2>
 
 <p>
 <strong>Position:</strong>
@@ -302,11 +426,13 @@ button:hover{
 </p>
 
 <p>
-<strong>Expected P&L:</strong>
-<span id="popupPnl"></span>
+<strong>Maximum SL Loss:</strong>
+<span id="popupRisk"></span>
 </p>
 
-<button class="close" onclick="closePopup()">CLOSE</button>
+<button class="close" onclick="closePopup()">
+CLOSE
+</button>
 
 </div>
 
@@ -316,22 +442,31 @@ button:hover{
 <script>
 
 /*
-====================================================
-SETTINGS
-====================================================
+==================================================
+DELTA CONTRACT
+==================================================
+
+1 LOT = 0.001 BTC
+
+This value is used everywhere.
 */
 
-// Delta Exchange contract size
-// 1 lot = 0.001 BTC
 const BTC_PER_LOT = 0.001;
+
+
+/*
+==================================================
+USD / INR
+==================================================
+*/
 
 let USDINR = 95.79;
 
 
 /*
-====================================================
-GET USD / INR RATE
-====================================================
+==================================================
+LIVE USD / INR
+==================================================
 */
 
 async function getUsdRate(){
@@ -344,7 +479,11 @@ async function getUsdRate(){
 
         const data = await response.json();
 
-        if(data && data.rates && data.rates.INR){
+        if(
+            data &&
+            data.rates &&
+            data.rates.INR
+        ){
 
             USDINR = Number(data.rates.INR);
 
@@ -352,87 +491,112 @@ async function getUsdRate(){
 
     }catch(error){
 
-        console.log("Using fallback USD/INR rate.");
+        console.log(
+            "Using fallback USD/INR rate."
+        );
 
     }
 
-    document.getElementById("usdRate").innerHTML =
+    document.getElementById("usdRate").innerText =
         "₹" + USDINR.toFixed(2) + " (live)";
-
 }
 
 
 /*
-====================================================
-FORMAT FUNCTIONS
-====================================================
+==================================================
+FORMAT
+==================================================
 */
 
-function rupee(value){
+function formatRupee(value){
 
-    return "₹" + Number(value).toLocaleString("en-IN",{
-        minimumFractionDigits:2,
-        maximumFractionDigits:2
-    });
-
+    return "₹" +
+        Number(value).toLocaleString(
+            "en-IN",
+            {
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            }
+        );
 }
 
 
-function dollar(value){
+function formatDollar(value){
 
-    return "$" + Number(value).toLocaleString("en-US",{
-        minimumFractionDigits:2,
-        maximumFractionDigits:2
-    });
-
+    return "$" +
+        Number(value).toLocaleString(
+            "en-US",
+            {
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            }
+        );
 }
 
 
-function rupeeDollar(rupeeValue){
+function formatMoneyINR(rupeeValue){
 
-    const usdValue = rupeeValue / USDINR;
+    const usdValue =
+        rupeeValue / USDINR;
 
-    return rupee(rupeeValue) +
-           " <span class='small'>(" +
-           dollar(usdValue) +
-           ")</span>";
-
+    return (
+        formatRupee(rupeeValue) +
+        " <span class='small'>(" +
+        formatDollar(usdValue) +
+        ")</span>"
+    );
 }
 
 
-function usdRupee(usdValue){
+function formatUSDAsINR(usdValue){
 
-    const inrValue = usdValue * USDINR;
+    const inrValue =
+        usdValue * USDINR;
 
-    return rupee(inrValue) +
-           " <span class='small'>(" +
-           dollar(usdValue) +
-           ")</span>";
-
+    return (
+        formatRupee(inrValue) +
+        " <span class='small'>(" +
+        formatDollar(usdValue) +
+        ")</span>"
+    );
 }
 
 
-function signedUsdRupee(usdValue){
+function formatSignedUSDAsINR(usdValue){
 
-    const inrValue = usdValue * USDINR;
+    const inrValue =
+        usdValue * USDINR;
 
-    const signINR = inrValue >= 0 ? "+" : "";
-    const signUSD = usdValue >= 0 ? "+" : "";
+    const sign =
+        usdValue >= 0 ? "+" : "-";
 
-    return signINR +
-           rupee(Math.abs(inrValue)) +
-           " <span class='small'>(" +
-           signUSD +
-           dollar(Math.abs(usdValue)) +
-           ")</span>";
+    return (
+        sign +
+        formatRupee(Math.abs(inrValue)) +
+        " <span class='small'>(" +
+        sign +
+        formatDollar(Math.abs(usdValue)) +
+        ")</span>"
+    );
+}
 
+
+function formatLots(value){
+
+    return Number(value).toLocaleString(
+        "en-IN",
+        {
+            minimumFractionDigits:3,
+            maximumFractionDigits:3
+        }
+    ) + " lots";
 }
 
 
 /*
-====================================================
-CALCULATE
-====================================================
+==================================================
+MAIN CALCULATION
+==================================================
 */
 
 function calculate(){
@@ -441,84 +605,57 @@ function calculate(){
         document.getElementById("position").value;
 
     const entry =
-        Number(document.getElementById("entry").value);
+        Number(
+            document.getElementById("entry").value
+        );
 
     const stop =
-        Number(document.getElementById("stop").value);
-
-    const exit =
-        Number(document.getElementById("exit").value);
+        Number(
+            document.getElementById("stop").value
+        );
 
     const tradeValueINR =
-        Number(document.getElementById("tradeValue").value);
+        Number(
+            document.getElementById("tradeValue").value
+        );
 
     const leverage =
-        Number(document.getElementById("leverage").value);
+        Number(
+            document.getElementById("leverage").value
+        );
 
     const riskINR =
-        Number(document.getElementById("risk").value);
+        Number(
+            document.getElementById("risk").value
+        );
 
 
     /*
-    ---------------------------------------------
+    ==============================================
     VALIDATION
-    ---------------------------------------------
+    ==============================================
     */
 
     if(
         !entry ||
         !stop ||
-        !exit ||
         !tradeValueINR ||
-        !leverage
+        !leverage ||
+        !riskINR
     ){
 
-        alert("Please enter all required values.");
+        alert(
+            "Please enter Entry, Stop Loss, Trade Value, Leverage and Maximum Risk."
+        );
+
         return;
     }
 
 
-    if(entry <= 0 || stop <= 0 || exit <= 0){
-
-        alert("Price must be greater than zero.");
-        return;
-    }
-
-
-    /*
-    ---------------------------------------------
-    PRICE DIFFERENCE
-    ---------------------------------------------
-    */
-
-    let slDifference;
-    let exitDifference;
-
-    if(position === "long"){
-
-        slDifference = entry - stop;
-        exitDifference = exit - entry;
-
-    }else{
-
-        slDifference = stop - entry;
-        exitDifference = entry - exit;
-
-    }
-
-
-    /*
-    ---------------------------------------------
-    VALIDATE STOP LOSS
-    ---------------------------------------------
-    */
-
-    if(slDifference <= 0){
+    if(entry <= 0 || stop <= 0){
 
         alert(
-            position === "long"
-            ? "For LONG, Stop Loss must be below Entry Price."
-            : "For SHORT, Stop Loss must be above Entry Price."
+            "Entry and Stop Loss must be greater than zero."
         );
 
         return;
@@ -526,9 +663,47 @@ function calculate(){
 
 
     /*
-    ---------------------------------------------
-    TRADE VALUE USD
-    ---------------------------------------------
+    ==============================================
+    LONG / SHORT STOP VALIDATION
+    ==============================================
+    */
+
+    let slDifference;
+
+    if(position === "long"){
+
+        if(stop >= entry){
+
+            alert(
+                "For LONG position, Stop Loss must be below Entry Price."
+            );
+
+            return;
+        }
+
+        slDifference =
+            entry - stop;
+
+    }else{
+
+        if(stop <= entry){
+
+            alert(
+                "For SHORT position, Stop Loss must be above Entry Price."
+            );
+
+            return;
+        }
+
+        slDifference =
+            stop - entry;
+    }
+
+
+    /*
+    ==============================================
+    TRADE VALUE → USD
+    ==============================================
     */
 
     const tradeValueUSD =
@@ -536,64 +711,77 @@ function calculate(){
 
 
     /*
-    ---------------------------------------------
-    MAXIMUM POSITION VALUE
-    ---------------------------------------------
+    ==============================================
+    FORMULA 1
+    LEVERAGE MAX LOT
+
+    Maximum Position USD:
+    
+    Trade Value USD × Leverage
+
+    1 Lot Notional:
+
+    Entry × 0.001
+
+    Therefore:
+
+    Max Lot =
+    (Trade Value USD × Leverage)
+    / (Entry × 0.001)
+    ==============================================
     */
 
-    const maxPositionUSD =
+    const maximumPositionUSD =
         tradeValueUSD * leverage;
 
-
-    /*
-    ---------------------------------------------
-    BTC QUANTITY
-    ---------------------------------------------
-    */
-
-    const btcQuantity =
-        maxPositionUSD / entry;
-
-
-    /*
-    ---------------------------------------------
-    LEVERAGE MAX LOT
-    ---------------------------------------------
-    */
+    const oneLotNotionalUSD =
+        entry * BTC_PER_LOT;
 
     const leverageMaxLot =
-        btcQuantity / BTC_PER_LOT;
+        maximumPositionUSD /
+        oneLotNotionalUSD;
 
 
     /*
-    ---------------------------------------------
+    ==============================================
+    FORMULA 2
     RISK BASED LOT
-    ---------------------------------------------
+
+    Risk USD:
     
-    Loss per BTC = SL difference
+    Risk INR / USDINR
 
-    BTC quantity allowed =
-    Risk USD / SL difference
+    Loss per lot:
 
-    Lot =
-    BTC quantity / 0.001
-    ---------------------------------------------
+    SL Difference × 0.001
+
+    Risk Lot:
+
+    Risk USD /
+    (SL Difference × 0.001)
+    ==============================================
     */
 
     const riskUSD =
         riskINR / USDINR;
 
-    const riskBTC =
-        riskUSD / slDifference;
+    const lossPerLotUSD =
+        slDifference * BTC_PER_LOT;
 
     const riskBasedLot =
-        riskBTC / BTC_PER_LOT;
+        riskUSD /
+        lossPerLotUSD;
 
 
     /*
-    ---------------------------------------------
-    FINAL LOT SIZE
-    ---------------------------------------------
+    ==============================================
+    FINAL LOT
+
+    Use the smaller of:
+
+    Leverage Max Lot
+    Risk Based Lot
+    ==============================================
     */
 
     const finalLot =
@@ -604,9 +792,9 @@ function calculate(){
 
 
     /*
-    ---------------------------------------------
+    ==============================================
     ACTUAL SL LOSS
-    ---------------------------------------------
+    ==============================================
     */
 
     const slLossUSD =
@@ -615,101 +803,48 @@ function calculate(){
         finalLot;
 
     const slLossINR =
-        slLossUSD * USDINR;
+        slLossUSD *
+        USDINR;
 
 
     /*
-    ---------------------------------------------
-    EXPECTED P&L
-    ---------------------------------------------
-    */
-
-    const pnlUSD =
-        exitDifference *
-        BTC_PER_LOT *
-        finalLot;
-
-    const pnlINR =
-        pnlUSD * USDINR;
-
-
-    /*
-    ---------------------------------------------
+    ==============================================
     DISPLAY
-    ---------------------------------------------
+    ==============================================
     */
 
-    document.getElementById("finalLot").innerHTML =
-        finalLot.toLocaleString("en-IN",{
-            minimumFractionDigits:3,
-            maximumFractionDigits:3
-        }) + " lots";
+    document.getElementById("finalLot").innerText =
+        formatLots(finalLot);
 
 
     document.getElementById("tradeResult").innerHTML =
-        rupeeDollar(tradeValueINR);
+        formatMoneyINR(tradeValueINR);
 
 
-    document.getElementById("maxLot").innerHTML =
-        leverageMaxLot.toLocaleString("en-IN",{
-            minimumFractionDigits:3,
-            maximumFractionDigits:3
-        }) + " lots";
+    document.getElementById("maxLot").innerText =
+        formatLots(leverageMaxLot);
 
 
-    document.getElementById("riskLot").innerHTML =
-        riskBasedLot.toLocaleString("en-IN",{
-            minimumFractionDigits:3,
-            maximumFractionDigits:3
-        }) + " lots";
+    document.getElementById("riskLot").innerText =
+        formatLots(riskBasedLot);
 
 
     document.getElementById("slLoss").innerHTML =
-        rupeeDollar(slLossINR);
+        formatMoneyINR(slLossINR);
 
 
     /*
-    ---------------------------------------------
-    PRICE DIFFERENCE
-    ---------------------------------------------
+    SL PRICE DIFFERENCE
     */
 
-    document.getElementById("priceDiff").innerHTML =
-        signedUsdRupee(exitDifference);
+    document.getElementById("slDifference").innerHTML =
+        formatUSDAsINR(slDifference);
 
 
     /*
-    ---------------------------------------------
-    P&L COLOR
-    ---------------------------------------------
-    */
-
-    const pnlElement =
-        document.getElementById("pnl");
-
-    pnlElement.innerHTML =
-        signedUsdRupee(pnlUSD);
-
-    pnlElement.classList.remove(
-        "profit",
-        "loss"
-    );
-
-    if(pnlINR > 0){
-
-        pnlElement.classList.add("profit");
-
-    }else if(pnlINR < 0){
-
-        pnlElement.classList.add("loss");
-
-    }
-
-
-    /*
-    ---------------------------------------------
+    ==============================================
     SHOW RESULTS
-    ---------------------------------------------
+    ==============================================
     */
 
     document.getElementById("results").style.display =
@@ -717,54 +852,176 @@ function calculate(){
 
 
     /*
-    ---------------------------------------------
+    ==============================================
     POPUP
-    ---------------------------------------------
+    ==============================================
     */
 
     document.getElementById("popupPosition").innerText =
         position.toUpperCase();
 
     document.getElementById("popupLot").innerText =
-        finalLot.toLocaleString("en-IN",{
-            minimumFractionDigits:3,
-            maximumFractionDigits:3
-        }) + " lots";
+        formatLots(finalLot);
 
-    const popupPnl =
-        document.getElementById("popupPnl");
-
-    popupPnl.innerHTML =
-        signedUsdRupee(pnlUSD);
-
-    popupPnl.className =
-        pnlINR >= 0 ? "profit" : "loss";
-
+    document.getElementById("popupRisk").innerText =
+        formatMoneyINR(slLossINR);
 
     document.getElementById("popup").style.display =
         "flex";
+
+
+    /*
+    ==============================================
+    OPTIONAL P&L
+    ==============================================
+    */
+
+    calculatePnl();
 
 }
 
 
 /*
-====================================================
+==================================================
+OPTIONAL P&L
+
+Exit price is NOT used anywhere in lot-size
+calculation.
+
+It is only used here.
+==================================================
+*/
+
+function calculatePnl(){
+
+    const exitInput =
+        document.getElementById("exit").value;
+
+    const pnlElement =
+        document.getElementById("pnl");
+
+    if(
+        exitInput === "" ||
+        document.getElementById("results").style.display !== "block"
+    ){
+
+        pnlElement.innerHTML = "-";
+
+        pnlElement.classList.remove(
+            "profit",
+            "loss"
+        );
+
+        return;
+    }
+
+
+    const exit =
+        Number(exitInput);
+
+    const entry =
+        Number(
+            document.getElementById("entry").value
+        );
+
+    const position =
+        document.getElementById("position").value;
+
+
+    const finalLotText =
+        document.getElementById("finalLot").innerText;
+
+    const finalLot =
+        parseFloat(
+            finalLotText.replace(/,/g,"")
+        );
+
+
+    if(!exit || !entry || !finalLot){
+
+        return;
+    }
+
+
+    /*
+    LONG:
+    Exit - Entry
+
+    SHORT:
+    Entry - Exit
+    */
+
+    let priceDifference;
+
+    if(position === "long"){
+
+        priceDifference =
+            exit - entry;
+
+    }else{
+
+        priceDifference =
+            entry - exit;
+    }
+
+
+    /*
+    P&L USD
+    */
+
+    const pnlUSD =
+        priceDifference *
+        BTC_PER_LOT *
+        finalLot;
+
+
+    /*
+    DISPLAY
+    */
+
+    pnlElement.innerHTML =
+        formatSignedUSDAsINR(pnlUSD);
+
+
+    pnlElement.classList.remove(
+        "profit",
+        "loss"
+    );
+
+
+    if(pnlUSD > 0){
+
+        pnlElement.classList.add(
+            "profit"
+        );
+
+    }else if(pnlUSD < 0){
+
+        pnlElement.classList.add(
+            "loss"
+        );
+    }
+
+}
+
+
+/*
+==================================================
 CLOSE POPUP
-====================================================
+==================================================
 */
 
 function closePopup(){
 
     document.getElementById("popup").style.display =
         "none";
-
 }
 
 
 /*
-====================================================
-LOAD RATE
-====================================================
+==================================================
+START
+==================================================
 */
 
 getUsdRate();
